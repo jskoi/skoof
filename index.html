@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanzas">
 <meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Finanzas · Control diario</title>
 <style>
 :root{
@@ -1561,6 +1564,13 @@ async function init(){
   if(!storageOK){ showToast('El navegador bloqueó el guardado (¿modo incógnito?). Los datos son temporales.', false); }
 }
 init();
+
+/* ======================= SERVICE WORKER (offline + instalación) ======================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
