@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Finanzas">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Finanzas · Control diario</title>
+<style>
+:root{
+  --bg:#000000;
+  --surface:#111113;
+  --surface2:#1C1C1E;
+  --surface3:#252528;
+  --text:#FFFFFF;
+  --text-sec:#9A9AA1;
+  --text-tert:#636367;
+  --border:rgba(255,255,255,0.09);
+  --border-soft:rgba(255,255,255,0.05);
+  --green:#30D158;
+  --amber:#FF9F0A;
+  --red:#FF453A;
+  --white:#FFFFFF;
+  --radius-lg:26px;
+  --radius-md:18px;
+  --radius-sm:12px;
+  --radius-pill:999px;
+  --ease:cubic-bezier(.22,.9,.32,1);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:#050505;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{display:none;}
+*{scrollbar-width:none;}
+
+.phone{
+  width:100%;
+  max-width:430px;
+  min-height:100vh;
+  background:var(--bg);
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+@media (min-width:431px){
+  body{padding:0;}
+}
+
+/* ---------- top bar ---------- */
+.topbar{
+  padding:20px 20px 6px 20px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.topbar .greet .eyebrow{
+  font-size:13px;
+  color:var(--text-sec);
+  font-weight:600;
+  letter-spacing:.2px;
+  margin:0 0 2px 0;
+}
+.topbar .greet h1{
+  font-size:26px;
+  font-weight:800;
+  margin:0;
+  letter-spacing:-0.4px;
+}
+.icon-btn{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text);
+  cursor:pointer;
+  transition:transform .15s var(--ease), background .15s;
+  flex-shrink:0;
+}
+.icon-btn svg{width:19px;height:19px;}
+.icon-btn:active{transform:scale(.88); background:var(--surface3);}
+
+/* ---------- scroll area ---------- */
+.views{
+  flex:1;
+  overflow-y:auto;
+  padding-bottom:calc(120px + var(--safe-b));
+  -webkit-overflow-scrolling:touch;
+}
+.view{display:none; padding:14px 20px 8px 20px; animation:fadeUp .35s var(--ease);}
+.view.active{display:block;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+/* ---------- cards ---------- */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:20px;
+}
+.balance-card{
+  background:linear-gradient(160deg,#161618 0%, #0a0a0b 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:22px 22px 18px 22px;
+  position:relative;
+  overflow:hidden;
+}
+.balance-card::after{
+  content:"";
+  position:absolute; top:-60px; right:-60px;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.06),transparent 70%);
+}
+.balance-label{font-size:13px;color:var(--text-sec);font-weight:600;display:flex;align-items:center;gap:6px;}
+.balance-amount{font-size:40px;font-weight:800;letter-spacing:-1px;margin:6px 0 16px 0;}
+.balance-amount .cur{font-size:22px;font-weight:700;color:var(--text-sec);margin-right:4px;}
+.balance-sub{display:flex; gap:10px;}
+.mini-stat{
+  flex:1;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-soft);
+  border-radius:var(--radius-sm);
+  padding:10px 12px;
+  display:flex;align-items:center; gap:8px;
+}
+.mini-stat .dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mini-stat .dot.in{background:rgba(48,209,88,.15); color:var(--green);}
+.mini-stat .dot.out{background:rgba(255,69,58,.15); color:var(--red);}
+.mini-stat .dot svg{width:14px;height:14px;}
+.mini-stat .t{font-size:11px;color:var(--text-sec); font-weight:600;}
+.mini-stat .v{font-size:15px;font-weight:700;}
+
+/* segmented control */
+.segment{
+  display:flex;
+  background:var(--surface2);
+  border-radius:var(--radius-pill);
+  padding:3px;
+  position:relative;
+  margin:16px 0 4px 0;
+  border:1px solid var(--border-soft);
+}
+.segment button{
+  flex:1;
+  border:none;background:transparent;color:var(--text-sec);
+  font-size:13px;font-weight:700;
+  padding:9px 4px;
+  border-radius:var(--radius-pill);
+  position:relative; z-index:1;
+  cursor:pointer;
+  transition:color .25s var(--ease);
+  font-family:inherit;
+}
+.segment button.active{color:#000;}
+.segment .indicator{
+  position:absolute; top:3px; bottom:3px; left:3px;
+  width:calc((100% - 6px)/3);
+  background:#fff;
+  border-radius:var(--radius-pill);
+  transition:transform .28s var(--ease);
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+.section-title{
+  display:flex; align-items:center; justify-content:space-between;
+  margin:24px 0 12px 0;
+}
+.section-title h2{font-size:19px;font-weight:800;margin:0;letter-spacing:-.3px;}
+.section-title a{font-size:13px;color:var(--text-sec);font-weight:600;cursor:pointer;}
+
+/* AI insight card */
+.ai-card{
+  border-radius:var(--radius-lg);
+  padding:18px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  display:flex; gap:12px; align-items:flex-start;
+  cursor:pointer;
+  transition:transform .15s var(--ease);
+}
+.ai-card:active{transform:scale(.985);}
+.ai-badge{
+  width:38px;height:38px;border-radius:50%;
+  background:#fff; color:#000;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ai-badge svg{width:19px;height:19px;}
+.ai-card .body{flex:1; min-width:0;}
+.ai-card .tag{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text-sec);margin-bottom:3px;}
+.ai-card p{font-size:14.5px; line-height:1.4; margin:0; color:#EDEDEE;}
+.ai-progress{height:6px;background:var(--surface3);border-radius:99px;margin-top:12px;overflow:hidden;}
+.ai-progress > div{height:100%;border-radius:99px; transition:width .5s var(--ease);}
+
+/* quick action pills */
+.quick-actions{display:flex; gap:10px; margin-top:16px;}
+.pill-btn{
+  flex:1;
+  border:none;
+  border-radius:var(--radius-pill);
+  padding:14px 10px;
+  font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center; gap:7px;
+  cursor:pointer;
+  font-family:inherit;
+  transition:transform .12s var(--ease), opacity .12s;
+}
+.pill-btn svg{width:17px;height:17px;}
+.pill-btn.solid{background:#fff;color:#000;}
+.pill-btn.outline{background:transparent;color:#fff;border:1.5px solid var(--border);}
+.pill-btn:active{transform:scale(.95); opacity:.85;}
+.pill-btn.block{width:100%;}
+.pill-btn.big{padding:16px 10px; font-size:16px;}
+
+/* movement rows */
+.mov-group-label{font-size:12.5px;font-weight:700;color:var(--text-sec); margin:18px 0 8px 2px; text-transform:uppercase; letter-spacing:.4px;}
+.mov-row{
+  display:flex; align-items:center; gap:12px;
+  padding:12px 4px;
+  border-bottom:1px solid var(--border-soft);
+}
+.mov-row:last-child{border-bottom:none;}
+.mov-icon{
+  width:42px;height:42px;border-radius:14px;
+  background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  color:#fff;
+}
+.mov-icon svg{width:19px;height:19px;}
+.mov-info{flex:1; min-width:0;}
+.mov-info .name{font-size:15px;font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.mov-info .meta{font-size:12.5px;color:var(--text-sec); margin-top:1px;}
+.mov-amount{font-size:15px; font-weight:800; flex-shrink:0;}
+.mov-amount.out{color:var(--red);}
+.mov-amount.in{color:var(--green);}
+.mov-edit{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-tert); flex-shrink:0; cursor:pointer;
+  transition:transform .15s var(--ease), color .15s;
+}
+.mov-edit:active{transform:scale(.85); color:#fff;}
+.mov-edit svg{width:15px;height:15px;}
+
+.empty-state{
+  text-align:center; padding:50px 20px; color:var(--text-sec);
+}
+.empty-state svg{width:44px;height:44px; margin-bottom:12px; opacity:.5;}
+.empty-state p{font-size:14px; margin:0; line-height:1.5;}
+
+/* chips filter */
+.chip-row{display:flex; gap:8px; margin:16px 0 4px 0; overflow-x:auto; padding-bottom:2px;}
+.chip{
+  flex-shrink:0;
+  border:1.5px solid var(--border);
+  background:transparent;
+  color:var(--text-sec);
+  font-family:inherit;
+  font-size:13.5px; font-weight:700;
+  padding:8px 16px;
+  border-radius:var(--radius-pill);
+  cursor:pointer;
+  transition:all .18s var(--ease);
+}
+.chip.active{background:#fff;color:#000;border-color:#fff;}
+
+/* payments */
+.pay-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  padding:16px;
+  margin-bottom:12px;
+  display:flex; align-items:center; gap:13px;
+}
+.pay-status-dot{width:11px;height:11px;border-radius:50%; flex-shrink:0;}
+.pay-status-dot.green{background:var(--green); box-shadow:0 0 8px rgba(48,209,88,.6);}
+.pay-status-dot.amber{background:var(--amber); box-shadow:0 0 8px rgba(255,159,10,.6);}
+.pay-status-dot.red{background:var(--red); box-shadow:0 0 8px rgba(255,69,58,.6);}
+.pay-info{flex:1; min-width:0;}
+.pay-info .n{font-size:15.5px; font-weight:700;}
+.pay-info .d{font-size:12.5px; color:var(--text-sec); margin-top:2px;}
+.pay-amount{font-size:16px; font-weight:800; margin-right:2px;}
+.pay-more{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-tert); cursor:pointer;}
+.pay-more svg{width:16px;height:16px;}
+.pay-card-actions{display:flex; justify-content:flex-end; margin-top:-4px; margin-bottom:12px; gap:8px;}
+
+.fab-row{display:flex; justify-content:flex-end; margin-bottom:6px;}
+.fab-mini{
+  width:38px;height:38px;border-radius:50%;
+  background:#fff; color:#000;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer; transition:transform .15s var(--ease);
+}
+.fab-mini:active{transform:scale(.85) rotate(90deg);}
+.fab-mini svg{width:18px;height:18px;}
+
+/* ---------- tab bar ---------- */
+.tabbar-wrap{
+  position:absolute; bottom:0; left:0; right:0;
+  padding:0 14px calc(14px + var(--safe-b)) 14px;
+  z-index:30;
+}
+.tabbar{
+  display:flex; align-items:center; justify-content:space-around;
+  background:rgba(20,20,22,.78);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:26px;
+  padding:8px 6px;
+  position:relative;
+}
+.tab{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:7px 10px;
+  border-radius:16px;
+  color:var(--text-tert);
+  cursor:pointer;
+  transition:color .2s, background .2s, transform .15s var(--ease);
+  flex:1;
+}
+.tab svg{width:21px;height:21px;}
+.tab span{font-size:10.5px; font-weight:700;}
+.tab.active{color:#fff;}
+.tab:active{transform:scale(.9);}
+.fab{
+  width:56px;height:56px;border-radius:50%;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  color:#000;
+  margin-top:-30px;
+  box-shadow:0 6px 18px rgba(255,255,255,.18), 0 2px 6px rgba(0,0,0,.4);
+  cursor:pointer;
+  border:5px solid #050505;
+  transition:transform .18s var(--ease);
+  flex-shrink:0;
+}
+.fab svg{width:24px;height:24px;}
+.fab:active{transform:scale(.88) rotate(90deg);}
+
+/* ---------- reminder banner ---------- */
+.banner{
+  margin:0 0 14px 0;
+  background:linear-gradient(120deg,#2a1600,#1c1c1e);
+  border:1px solid rgba(255,159,10,.35);
+  border-radius:var(--radius-md);
+  padding:14px 16px;
+  display:flex; align-items:center; gap:12px;
+  cursor:pointer;
+  animation:pulseBorder 2.4s ease-in-out infinite;
+}
+@keyframes pulseBorder{0%,100%{box-shadow:0 0 0 0 rgba(255,159,10,.0);}50%{box-shadow:0 0 0 4px rgba(255,159,10,.08);}}
+.banner .ic{width:34px;height:34px;border-radius:50%;background:rgba(255,159,10,.18);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.banner .ic svg{width:17px;height:17px;}
+.banner p{margin:0;font-size:13.5px;font-weight:600; line-height:1.35; color:#F2E4CF;}
+
+/* ---------- modals / sheets ---------- */
+.overlay{
+  position:absolute; inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(2px);
+  z-index:50;
+  opacity:0; pointer-events:none;
+  transition:opacity .25s var(--ease);
+}
+.overlay.show{opacity:1; pointer-events:auto;}
+.sheet{
+  position:absolute; left:0; right:0; bottom:0;
+  background:#161618;
+  border-radius:28px 28px 0 0;
+  border:1px solid var(--border);
+  border-bottom:none;
+  padding:10px 20px calc(24px + var(--safe-b)) 20px;
+  transform:translateY(100%);
+  transition:transform .38s var(--ease);
+  max-height:88%;
+  overflow-y:auto;
+  z-index:51;
+}
+.overlay.show .sheet{transform:translateY(0);}
+.sheet-handle{width:38px;height:5px;background:#3a3a3c;border-radius:99px;margin:6px auto 14px auto;}
+.sheet h3{font-size:19px; font-weight:800; margin:0 0 4px 0; letter-spacing:-.3px;}
+.sheet .sub{font-size:13.5px;color:var(--text-sec); margin:0 0 18px 0; line-height:1.4;}
+.sheet-close{
+  position:absolute; top:14px; right:16px;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--surface2); color:var(--text-sec);
+  display:flex;align-items:center;justify-content:center; cursor:pointer;
+}
+.sheet-close svg{width:14px;height:14px;}
+
+.field-label{font-size:12.5px; font-weight:700; color:var(--text-sec); margin:16px 0 8px 0; text-transform:uppercase; letter-spacing:.4px;}
+.text-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:14px 16px;
+  color:#fff;
+  font-size:16px;
+  font-family:inherit;
+  outline:none;
+}
+.text-input:focus{border-color:rgba(255,255,255,.35);}
+.text-input:disabled{opacity:.5;}
+.input-row{display:flex; align-items:center; gap:10px;}
+.mic-btn{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  background:var(--surface2); border:1px solid var(--border);
+  color:#fff; display:flex;align-items:center;justify-content:center; cursor:pointer;
+  transition:all .2s var(--ease);
+}
+.mic-btn svg{width:19px;height:19px;}
+.mic-btn.rec{background:var(--red); border-color:var(--red); animation:micPulse 1.2s ease-in-out infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,69,58,.5);}50%{box-shadow:0 0 0 9px rgba(255,69,58,0);}}
+
+.type-toggle{display:flex; gap:8px; margin-bottom:6px;}
+.type-toggle button{
+  flex:1; padding:12px; border-radius:16px; border:1.5px solid var(--border);
+  background:transparent; color:var(--text-sec); font-weight:700; font-size:14px;
+  font-family:inherit; cursor:pointer; display:flex;align-items:center;justify-content:center; gap:6px;
+  transition:all .2s var(--ease);
+}
+.type-toggle button svg{width:16px;height:16px;}
+.type-toggle button.active.gasto{background:rgba(255,69,58,.13); border-color:var(--red); color:#FF7A70;}
+.type-toggle button.active.ingreso{background:rgba(48,209,88,.13); border-color:var(--green); color:#5FE083;}
+
+.amount-display{
+  text-align:center; margin:18px 0 6px 0;
+}
+.amount-display .num{font-size:44px; font-weight:800; letter-spacing:-1px;}
+.amount-display .num .s{font-size:22px; color:var(--text-sec); margin-right:4px;}
+.chip-amounts{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 6px 0;}
+.chip-amounts button{
+  flex:1; min-width:60px;
+  padding:10px 6px; border-radius:14px; border:1.5px solid var(--border);
+  background:var(--surface2); color:#fff; font-weight:700; font-size:14px;
+  font-family:inherit; cursor:pointer; transition:all .15s var(--ease);
+}
+.chip-amounts button.active{background:#fff;color:#000;border-color:#fff;}
+.keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px;}
+.keypad button{
+  padding:16px 0; border-radius:16px; border:none;
+  background:var(--surface2); color:#fff; font-size:20px; font-weight:700;
+  font-family:inherit; cursor:pointer; transition:all .12s var(--ease);
+}
+.keypad button:active{background:var(--surface3); transform:scale(.94);}
+.keypad button.fn{color:var(--text-sec); font-size:15px; font-weight:700;}
+
+.cat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0 4px 0;}
+.cat-item{
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  cursor:pointer;
+}
+.cat-item .ic{
+  width:56px;height:56px;border-radius:18px;
+  background:var(--surface2); border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center; color:#fff;
+  transition:all .18s var(--ease);
+}
+.cat-item .ic svg{width:23px;height:23px;}
+.cat-item.active .ic{background:#fff; border-color:#fff; color:#000; transform:scale(1.06);}
+.cat-item span{font-size:11.5px; font-weight:600; color:var(--text-sec); text-align:center;}
+.cat-item.active span{color:#fff;}
+
+.hour-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:14px 0;}
+.hour-grid button{
+  padding:11px 4px; border-radius:14px; border:1.5px solid var(--border);
+  background:var(--surface2); color:#fff; font-weight:700; font-size:13.5px;
+  font-family:inherit; cursor:pointer;
+}
+.hour-grid button.active{background:#fff;color:#000;border-color:#fff;}
+
+.disabled-amount{
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--surface2); border-radius:var(--radius-sm); padding:14px 16px; margin-top:16px;
+  opacity:.6;
+}
+.disabled-amount span{font-size:12.5px; color:var(--text-sec); font-weight:600;}
+.disabled-amount b{font-size:16px;}
+
+.skip-options{display:none; margin-top:14px;}
+.skip-options.show{display:block; animation:fadeUp .3s var(--ease);}
+.ghost-link{
+  text-align:center; font-size:13.5px; color:var(--text-sec); font-weight:700;
+  padding:12px; cursor:pointer;
+}
+
+/* toast */
+#toast{
+  position:absolute; top:14px; left:50%; transform:translateX(-50%) translateY(-60px);
+  background:#1f1f22; border:1px solid var(--border); color:#fff;
+  padding:11px 18px; border-radius:var(--radius-pill); font-size:13.5px; font-weight:700;
+  display:flex; align-items:center; gap:8px;
+  z-index:80; transition:transform .35s var(--ease);
+  box-shadow:0 10px 26px rgba(0,0,0,.4);
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast svg{width:15px;height:15px; color:var(--green); flex-shrink:0;}
+
+/* loading */
+#loading{
+  position:absolute; inset:0; background:#050505; z-index:200;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+}
+.spinner{width:30px;height:30px; border-radius:50%; border:3px solid #2a2a2c; border-top-color:#fff; animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loading p{color:var(--text-sec); font-size:13px; font-weight:600;}
+
+.reset-btn{
+  width:100%; text-align:center; padding:14px; margin-top:10px;
+  color:var(--red); font-weight:700; font-size:14px; cursor:pointer;
+  border-radius:var(--radius-md); border:1px solid rgba(255,69,58,.25);
+  background:rgba(255,69,58,.06);
+}
+.settings-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 2px; border-bottom:1px solid var(--border-soft);
+}
+.settings-row .l{font-size:14.5px; font-weight:600;}
+.settings-row .l small{display:block; color:var(--text-sec); font-weight:500; font-size:12px; margin-top:2px;}
+
+/* ---------- pantalla de bloqueo (PIN) ---------- */
+.lock-screen{
+  position:absolute; inset:0; background:#000; z-index:300;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:24px;
+}
+.lock-icon{
+  width:60px;height:60px;border-radius:50%;
+  background:var(--surface2); border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center; margin-bottom:18px; color:#fff;
+}
+.lock-icon svg{width:26px;height:26px;}
+.lock-title{font-size:20px; font-weight:800; margin-bottom:6px; text-align:center;}
+.lock-sub{font-size:13.5px; color:var(--text-sec); margin-bottom:30px; text-align:center; min-height:18px;}
+.pin-dots{display:flex; gap:16px; margin-bottom:36px;}
+.pin-dots.shake{animation:pinShake .4s;}
+@keyframes pinShake{10%,90%{transform:translateX(-6px);}20%,80%{transform:translateX(6px);}30%,50%,70%{transform:translateX(-10px);}40%,60%{transform:translateX(10px);}}
+.pin-dot{width:14px;height:14px;border-radius:50%; border:1.5px solid var(--text-sec); transition:all .15s var(--ease);}
+.pin-dot.filled{background:#fff; border-color:#fff; transform:scale(1.1);}
+.pin-keypad{display:grid; grid-template-columns:repeat(3,70px); gap:16px;}
+.pin-keypad button{
+  width:70px;height:70px;border-radius:50%;
+  background:var(--surface2); border:1px solid var(--border); color:#fff;
+  font-size:25px; font-weight:600; font-family:inherit; cursor:pointer;
+}
+.pin-keypad button:active{background:var(--surface3); transform:scale(.93);}
+.pin-keypad .empty{background:transparent; border:none; cursor:default;}
+.pin-keypad .del svg{width:22px;height:22px;}
+.lock-forgot{margin-top:28px; font-size:13px; color:var(--text-sec); font-weight:700; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+
+  <div id="loading"><div class="spinner"></div><p>Cargando tus finanzas…</p></div>
+
+  <div class="lock-screen" id="lockScreen" style="display:none;">
+    <div class="lock-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    </div>
+    <div class="lock-title" id="lockTitle">Ingresa tu PIN</div>
+    <div class="lock-sub" id="lockSub">Solo tú puedes ver esta app.</div>
+    <div class="pin-dots" id="pinDotsWrap">
+      <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-keypad">
+      <button onclick="pinPress('1')">1</button><button onclick="pinPress('2')">2</button><button onclick="pinPress('3')">3</button>
+      <button onclick="pinPress('4')">4</button><button onclick="pinPress('5')">5</button><button onclick="pinPress('6')">6</button>
+      <button onclick="pinPress('7')">7</button><button onclick="pinPress('8')">8</button><button onclick="pinPress('9')">9</button>
+      <button class="empty"></button><button onclick="pinPress('0')">0</button>
+      <button class="del" onclick="pinDelete()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/></svg></button>
+    </div>
+    <div class="lock-forgot" onclick="forgotPin()">Olvidé mi PIN</div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- ============ TOP BAR ============ -->
+  <div class="topbar">
+    <div class="greet">
+      <p class="eyebrow" id="dateLabel">Hoy</p>
+      <h1 id="greetLabel">Hola 👋</h1>
+    </div>
+    <div class="icon-btn" onclick="openSheet('sheetSettings')" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </div>
+  </div>
+
+  <!-- ============ VIEWS ============ -->
+  <div class="views" id="views">
+
+    <!-- ---- HOME ---- -->
+    <section class="view active" id="view-home">
+
+      <div id="bannerSlot"></div>
+
+      <div class="balance-card">
+        <div class="balance-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2H10a2 2 0 00-2 2v16"/></svg>
+          Balance · <span id="rangeLabel">Este mes</span>
+        </div>
+        <div class="balance-amount" id="balanceAmount"><span class="cur">S/</span>0.00</div>
+        <div class="balance-sub">
+          <div class="mini-stat">
+            <div class="dot in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+            <div><div class="t">Ingresos</div><div class="v" id="totalIn">S/ 0</div></div>
+          </div>
+          <div class="mini-stat">
+            <div class="dot out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+            <div><div class="t">Gastos</div><div class="v" id="totalOut">S/ 0</div></div>
+          </div>
+        </div>
+        <div class="segment" id="rangeSegment">
+          <div class="indicator" id="rangeIndicator"></div>
+          <button data-range="day">Día</button>
+          <button data-range="week">Semana</button>
+          <button data-range="month" class="active">Mes</button>
+        </div>
+      </div>
+
+      <div class="section-title"><h2>Cómo vas</h2></div>
+      <div class="ai-card" onclick="openSheet('sheetAI')">
+        <div class="ai-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.9 5.8L20 9.5l-5.5 2.6L12 18l-2.5-5.9L4 9.5l6.1-1.7L12 2z"/></svg>
+        </div>
+        <div class="body">
+          <div class="tag">Asistente</div>
+          <p id="aiSummary">Analizando tus movimientos…</p>
+          <div class="ai-progress"><div id="aiProgressBar" style="width:0%; background:#fff;"></div></div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="pill-btn solid" onclick="openAdd('gasto')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Gasto
+        </button>
+        <button class="pill-btn outline" onclick="openAdd('ingreso')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Ingreso
+        </button>
+      </div>
+
+      <div class="section-title">
+        <h2>Movimientos recientes</h2>
+        <a onclick="goTab('movs')">Ver todos</a>
+      </div>
+      <div id="recentList"></div>
+
+    </section>
+
+    <!-- ---- MOVIMIENTOS ---- -->
+    <section class="view" id="view-movs">
+      <div class="section-title" style="margin-top:6px;"><h2>Movimientos</h2></div>
+      <div class="chip-row">
+        <button class="chip active" data-filter="todo">Todo</button>
+        <button class="chip" data-filter="gasto">Gastos</button>
+        <button class="chip" data-filter="ingreso">Ingresos</button>
+      </div>
+      <div id="movList"></div>
+    </section>
+
+    <!-- ---- PAGOS ---- -->
+    <section class="view" id="view-pagos">
+      <div class="section-title" style="margin-top:6px;">
+        <h2>Pagos mensuales</h2>
+      </div>
+      <div class="fab-row">
+        <div class="fab-mini" onclick="openPaymentSheet()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+      </div>
+      <div id="payList"></div>
+    </section>
+
+    <!-- ---- AJUSTES ---- -->
+    <section class="view" id="view-ajustes">
+      <div class="section-title" style="margin-top:6px;"><h2>Ajustes</h2></div>
+      <div class="field-label">Meta de ahorro mensual</div>
+      <div class="input-row">
+        <input class="text-input" id="goalInput" type="number" inputmode="decimal" placeholder="Ej. 500">
+        <button class="pill-btn solid" style="flex:0 0 auto; padding:14px 18px;" onclick="saveGoal()">Guardar</button>
+      </div>
+
+      <div class="field-label">Hora del recordatorio diario</div>
+      <div class="hour-grid" id="reminderHourGrid"></div>
+
+      <div class="field-label">Privacidad</div>
+      <div class="settings-row">
+        <div class="l">Bloqueo con PIN<small>Se te pedirá al abrir la app</small></div>
+        <button class="pill-btn outline" style="flex:0 0 auto; padding:9px 16px; font-size:13px;" onclick="lockNow()">Bloquear ahora</button>
+      </div>
+      <div class="settings-row">
+        <div class="l">Cambiar PIN<small>Crea un PIN nuevo</small></div>
+        <button class="pill-btn outline" style="flex:0 0 auto; padding:9px 16px; font-size:13px;" onclick="changePin()">Cambiar</button>
+      </div>
+
+      <div class="field-label">Datos</div>
+      <div class="settings-row">
+        <div class="l">Movimientos guardados<small id="statMovs">0 registros</small></div>
+      </div>
+      <div class="settings-row">
+        <div class="l">Pagos mensuales<small id="statPays">0 registros</small></div>
+      </div>
+      <div class="reset-btn" onclick="confirmReset()">Borrar todos los datos</div>
+    </section>
+
+  </div>
+
+  <!-- ============ TAB BAR ============ -->
+  <div class="tabbar-wrap">
+    <div class="tabbar">
+      <div class="tab active" data-tab="home" onclick="goTab('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+        <span>Inicio</span>
+      </div>
+      <div class="tab" data-tab="movs" onclick="goTab('movs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        <span>Movim.</span>
+      </div>
+      <div class="fab" onclick="openAdd('gasto')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      </div>
+      <div class="tab" data-tab="pagos" onclick="goTab('pagos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+        <span>Pagos</span>
+      </div>
+      <div class="tab" data-tab="ajustes" onclick="goTab('ajustes')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>Ajustes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SHEET: AGREGAR MOVIMIENTO ============ -->
+  <div class="overlay" id="overlayAdd" onclick="closeOnBackdrop(event,'overlayAdd')">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-close" onclick="closeSheet('overlayAdd')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+      <h3>Nuevo movimiento</h3>
+      <p class="sub">Registra en segundos, o usa tu voz.</p>
+
+      <div class="type-toggle" id="typeToggle">
+        <button class="active gasto" data-type="gasto" onclick="setMovType('gasto')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Gasto
+        </button>
+        <button class="ingreso" data-type="ingreso" onclick="setMovType('ingreso')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Ingreso
+        </button>
+      </div>
+
+      <div class="amount-display"><div class="num"><span class="s">S/</span><span id="amountDisplay">0</span></div></div>
+
+      <div class="chip-amounts" id="quickAmounts"></div>
+      <div class="keypad" id="keypad"></div>
+
+      <div id="catBlock">
+        <div class="field-label">Categoría</div>
+        <div class="cat-grid" id="catGrid"></div>
+      </div>
+
+      <div class="field-label">Nombre / detalle</div>
+      <div class="input-row">
+        <input class="text-input" id="movName" type="text" placeholder="Ej. Almuerzo en el trabajo">
+        <div class="mic-btn" id="micBtn" onclick="toggleVoice()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+        </div>
+      </div>
+      <p class="sub" id="voiceHint" style="margin-top:8px; min-height:16px;"></p>
+
+      <button class="pill-btn solid block big" style="margin-top:18px;" onclick="saveMovement()">Guardar movimiento</button>
+    </div>
+  </div>
+
+  <!-- ============ SHEET: CIERRE DEL DÍA ============ -->
+  <div class="overlay" id="overlayCheckin">
+    <div class="sheet" id="checkinSheet">
+      <div class="sheet-handle"></div>
+      <h3>¿Cómo cerraste el día?</h3>
+      <p class="sub">Registra lo que ahorraste o ingresaste hoy. Esto alimenta tu asistente y tu meta mensual.</p>
+
+      <div class="field-label">Monto de hoy</div>
+      <input class="text-input" id="checkinAmount" type="number" inputmode="decimal" placeholder="0.00">
+
+      <button class="pill-btn solid block big" style="margin-top:16px;" onclick="saveCheckin()">Guardar</button>
+      <div class="ghost-link" onclick="showSkipOptions()">Omitir por ahora</div>
+
+      <div class="skip-options" id="skipOptions">
+        <div class="field-label">¿Cuándo lo registras?</div>
+        <div class="hour-grid" id="skipHourGrid"></div>
+        <button class="pill-btn outline block" style="margin-top:6px;" onclick="skipWholeDay()">Omitir todo el día de hoy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SHEET: EDITAR NOMBRE ============ -->
+  <div class="overlay" id="overlayEdit" onclick="closeOnBackdrop(event,'overlayEdit')">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-close" onclick="closeSheet('overlayEdit')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+      <h3>Editar nombre</h3>
+      <p class="sub">Puedes corregir el nombre. El monto no se puede modificar.</p>
+      <div class="field-label">Nombre</div>
+      <input class="text-input" id="editNameInput" type="text">
+      <div class="disabled-amount">
+        <span>Monto registrado</span>
+        <b id="editAmountLabel">S/ 0.00</b>
+      </div>
+      <button class="pill-btn solid block big" style="margin-top:18px;" onclick="saveEditName()">Guardar cambios</button>
+    </div>
+  </div>
+
+  <!-- ============ SHEET: PAGO MENSUAL ============ -->
+  <div class="overlay" id="overlayPayment" onclick="closeOnBackdrop(event,'overlayPayment')">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-close" onclick="closeSheet('overlayPayment')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+      <h3 id="paymentSheetTitle">Nuevo pago mensual</h3>
+      <p class="sub">Ej. Netflix, alquiler, gimnasio, internet.</p>
+      <div class="field-label">Nombre</div>
+      <input class="text-input" id="payName" type="text" placeholder="Ej. Netflix">
+      <div class="field-label">Monto mensual</div>
+      <input class="text-input" id="payAmount" type="number" inputmode="decimal" placeholder="0.00">
+      <div class="field-label">Día de vencimiento (1–31)</div>
+      <input class="text-input" id="payDay" type="number" min="1" max="31" placeholder="Ej. 15">
+      <button class="pill-btn solid block big" style="margin-top:18px;" onclick="savePayment()">Guardar pago</button>
+      <div class="ghost-link" id="deletePayLink" style="display:none; color:var(--red);" onclick="deletePayment()">Eliminar este pago</div>
+    </div>
+  </div>
+
+  <!-- ============ SHEET: SETTINGS (gear) ============ -->
+  <div class="overlay" id="overlaySettings" onclick="closeOnBackdrop(event,'overlaySettings')">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-close" onclick="closeSheet('overlaySettings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+      <h3>Ajustes rápidos</h3>
+      <p class="sub">Configura tu meta y tu hora de recordatorio.</p>
+      <div class="field-label">Meta de ahorro mensual</div>
+      <input class="text-input" id="goalInput2" type="number" inputmode="decimal" placeholder="Ej. 500">
+      <button class="pill-btn solid block big" style="margin-top:16px;" onclick="saveGoal(true)">Guardar y cerrar</button>
+    </div>
+  </div>
+
+  <!-- ============ SHEET: AI DETAIL ============ -->
+  <div class="overlay" id="overlayAI" onclick="closeOnBackdrop(event,'overlayAI')">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-close" onclick="closeSheet('overlayAI')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+      <h3>Tu asistente</h3>
+      <p class="sub" id="aiDetailText">Analizando…</p>
+      <div class="ai-progress" style="margin-bottom:14px;"><div id="aiProgressBar2" style="width:0%; background:#fff;"></div></div>
+      <div id="aiTopCat"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ======================= ICONOS DE CATEGORÍA ======================= */
+const CATEGORIES = [
+  {id:'comida', label:'Comida', icon:'<path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/>'},
+  {id:'transporte', label:'Transporte', icon:'<rect x="1" y="6" width="15" height="10" rx="2"/><path d="M16 10h4l3 3v3h-7"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>'},
+  {id:'compras', label:'Compras', icon:'<path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/>'},
+  {id:'servicios', label:'Servicios', icon:'<path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>'},
+  {id:'salud', label:'Salud', icon:'<path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 10-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/>'},
+  {id:'ocio', label:'Ocio', icon:'<polygon points="5 3 19 12 5 21 5 3"/>'},
+  {id:'hogar', label:'Hogar', icon:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/>'},
+  {id:'otros', label:'Otros', icon:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>'}
+];
+const ICON = (svg,w=24)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>`;
+const ICON_CHECK = '<path d="M20 6L9 17l-5-5"/>';
+const ICON_ALERT = '<path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>';
+const ICON_TREND_UP = '<path d="M23 6l-9.5 9.5-5-5L1 18M17 6h6v6"/>';
+const ICON_CLOCK = '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>';
+const ICON_MORE = '<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>';
+
+function catIcon(catId){
+  const c = CATEGORIES.find(c=>c.id===catId) || CATEGORIES[CATEGORIES.length-1];
+  return ICON(c.icon);
+}
+
+/* ======================= ESTADO ======================= */
+let state = {
+  expenses: [],   // {id, type:'gasto', amount, category, name, date, ts}
+  incomes: [],    // {id, type:'ingreso', amount, name, date, ts}
+  payments: [],   // {id, name, amount, day, paidMonths:['2026-07',...]}
+  checkins: {},   // { '2026-07-17': {done:true} | {skipUntil: ts} | {skipDay:true} }
+  goal: { monthly: 0 },
+  categoryFreq: {},
+  settings: { reminderHour: 21 }
+};
+let storageOK = true;
+
+async function loadData(){
+  try{
+    const raw = localStorage.getItem('findata');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state = Object.assign(state, parsed);
+    }
+  }catch(e){
+    console.log('Sin datos previos o almacenamiento no disponible, iniciando limpio.', e);
+  }
+}
+async function saveData(){
+  try{
+    localStorage.setItem('findata', JSON.stringify(state));
+  }catch(e){
+    storageOK = false;
+    console.error('Error guardando datos', e);
+  }
+}
+
+/* ======================= UTIL ======================= */
+function fmt(n){ n = Number(n)||0; return 'S/ ' + n.toLocaleString('es-PE',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtShort(n){ n=Number(n)||0; return 'S/ ' + n.toLocaleString('es-PE',{maximumFractionDigits:0}); }
+function todayKey(d=new Date()){ return d.toISOString().slice(0,10); }
+function monthKey(d=new Date()){ return d.toISOString().slice(0,7); }
+function allMovs(){ return [...state.expenses, ...state.incomes].sort((a,b)=> b.ts - a.ts); }
+function showToast(msg, ok=true){
+  const t = document.getElementById('toast');
+  t.innerHTML = (ok? ICON(ICON_CHECK) : ICON(ICON_ALERT)) + '<span>'+msg+'</span>';
+  t.classList.add('show');
+  clearTimeout(showToast._tm);
+  showToast._tm = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ======================= NAVEGACIÓN ======================= */
+function goTab(tab){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  document.getElementById('views').scrollTop = 0;
+  if(tab==='pagos') renderPayments();
+  if(tab==='movs') renderMovList();
+  if(tab==='ajustes') renderAjustes();
+}
+function closeSheet(overlayId){ document.getElementById(overlayId).classList.remove('show'); }
+function closeOnBackdrop(ev, id){ if(ev.target.id===id) closeSheet(id); }
+
+function openSheet(name){
+  const map = {
+    sheetSettings:'overlaySettings',
+    sheetAI:'overlayAI'
+  };
+  const id = map[name] || name;
+  document.getElementById(id).classList.add('show');
+  if(id==='overlaySettings'){ document.getElementById('goalInput2').value = state.goal.monthly || ''; }
+  if(id==='overlayAI'){ renderAIDetail(); }
+}
+
+/* ======================= RANGO (Día/Semana/Mes) ======================= */
+let currentRange = 'month';
+document.getElementById('rangeSegment').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  currentRange = btn.dataset.range;
+  document.querySelectorAll('#rangeSegment button').forEach(b=>b.classList.toggle('active', b===btn));
+  const idx = [...document.querySelectorAll('#rangeSegment button')].indexOf(btn);
+  document.getElementById('rangeIndicator').style.transform = `translateX(${idx*100}%)`;
+  document.getElementById('rangeLabel').textContent = {day:'Hoy', week:'Esta semana', month:'Este mes'}[currentRange];
+  renderHome();
+});
+
+function inRange(ts, range){
+  const now = new Date();
+  const d = new Date(ts);
+  if(range==='day'){ return todayKey(d)===todayKey(now); }
+  if(range==='week'){
+    const start = new Date(now); const day = (start.getDay()+6)%7; start.setDate(start.getDate()-day); start.setHours(0,0,0,0);
+    return d >= start && d <= now;
+  }
+  if(range==='month'){ return monthKey(d)===monthKey(now); }
+  return true;
+}
+
+/* ======================= RENDER HOME ======================= */
+function renderHome(){
+  const now = new Date();
+  document.getElementById('dateLabel').textContent = now.toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'});
+  const hr = now.getHours();
+  document.getElementById('greetLabel').textContent = hr<12? 'Buenos días' : hr<19? 'Buenas tardes' : 'Buenas noches';
+
+  const ins = state.incomes.filter(x=>inRange(x.ts, currentRange)).reduce((s,x)=>s+x.amount,0);
+  const outs = state.expenses.filter(x=>inRange(x.ts, currentRange)).reduce((s,x)=>s+x.amount,0);
+  document.getElementById('balanceAmount').innerHTML = '<span class="cur">S/</span>' + (ins-outs).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('totalIn').textContent = fmtShort(ins);
+  document.getElementById('totalOut').textContent = fmtShort(outs);
+
+  const recent = allMovs().slice(0,5);
+  document.getElementById('recentList').innerHTML = recent.length? recent.map(rowHTML).join('') : emptyHTML('Aún no registras movimientos. Toca “+” para empezar.');
+
+  renderAI();
+  renderBanner();
+}
+
+function rowHTML(m){
+  const isOut = m.type==='gasto';
+  return `<div class="mov-row">
+    <div class="mov-icon">${isOut? catIcon(m.category) : ICON('<path d="M12 19V5M5 12l7-7 7 7"/>')}</div>
+    <div class="mov-info">
+      <div class="name">${escapeHTML(m.name || (isOut? categoryLabel(m.category) : 'Ingreso'))}</div>
+      <div class="meta">${new Date(m.ts).toLocaleDateString('es-PE',{day:'numeric', month:'short'})}${isOut? ' · '+categoryLabel(m.category) : ''}</div>
+    </div>
+    <div class="mov-amount ${isOut?'out':'in'}">${isOut? '-':'+'}${fmtShort(m.amount)}</div>
+    <div class="mov-edit" onclick="openEditName('${m.id}','${m.type}')">${ICON('<path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',16)}</div>
+  </div>`;
+}
+function categoryLabel(id){ const c = CATEGORIES.find(c=>c.id===id); return c? c.label : 'Otros'; }
+function emptyHTML(msg){
+  return `<div class="empty-state">${ICON('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2H10a2 2 0 00-2 2v16"/>',44)}<p>${msg}</p></div>`;
+}
+function escapeHTML(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+/* ======================= MOVIMIENTOS TAB ======================= */
+let movFilter = 'todo';
+document.querySelectorAll('.chip-row .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip-row .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    movFilter = chip.dataset.filter;
+    renderMovList();
+  });
+});
+function renderMovList(){
+  let list = allMovs();
+  if(movFilter!=='todo') list = list.filter(m=>m.type===movFilter);
+  if(!list.length){ document.getElementById('movList').innerHTML = emptyHTML('No hay movimientos en este filtro.'); return; }
+  // group by date
+  const groups = {};
+  list.forEach(m=>{ const k = todayKey(new Date(m.ts)); (groups[k] = groups[k]||[]).push(m); });
+  let html = '';
+  Object.keys(groups).sort().reverse().forEach(k=>{
+    const d = new Date(k+'T12:00:00');
+    const label = todayKey()===k ? 'Hoy' : d.toLocaleDateString('es-PE',{weekday:'long', day:'numeric', month:'long'});
+    html += `<div class="mov-group-label">${label}</div>` + groups[k].map(rowHTML).join('');
+  });
+  document.getElementById('movList').innerHTML = html;
+}
+
+/* ======================= EDITAR NOMBRE ======================= */
+let editingRef = null;
+function openEditName(id, type){
+  const arr = type==='gasto'? state.expenses : state.incomes;
+  const item = arr.find(x=>x.id===id);
+  if(!item) return;
+  editingRef = {id,type};
+  document.getElementById('editNameInput').value = item.name || '';
+  document.getElementById('editAmountLabel').textContent = fmt(item.amount);
+  document.getElementById('overlayEdit').classList.add('show');
+}
+function saveEditName(){
+  if(!editingRef) return;
+  const arr = editingRef.type==='gasto'? state.expenses : state.incomes;
+  const item = arr.find(x=>x.id===editingRef.id);
+  const val = document.getElementById('editNameInput').value.trim();
+  if(item){ item.name = val || item.name; }
+  saveData();
+  closeSheet('overlayEdit');
+  renderHome(); renderMovList();
+  showToast('Nombre actualizado');
+}
+
+/* ======================= AGREGAR MOVIMIENTO ======================= */
+let movType = 'gasto';
+let movAmount = 0;
+let movCategory = null;
+
+function openAdd(type){
+  movType = type; movAmount = 0; movCategory = null;
+  document.getElementById('amountDisplay').textContent = '0';
+  document.getElementById('movName').value = '';
+  document.getElementById('voiceHint').textContent = '';
+  buildQuickAmounts();
+  buildKeypad();
+  buildCatGrid();
+  setMovType(type);
+  document.getElementById('overlayAdd').classList.add('show');
+}
+function setMovType(type){
+  movType = type;
+  document.querySelectorAll('#typeToggle button').forEach(b=>b.classList.toggle('active', b.dataset.type===type));
+  document.getElementById('catBlock').style.display = type==='gasto' ? 'block' : 'none';
+  document.getElementById('movName').placeholder = type==='gasto' ? 'Ej. Almuerzo en el trabajo' : 'Ej. Propina, venta, freelance';
+}
+function buildQuickAmounts(){
+  const amounts = [5,10,20,50,100,200];
+  document.getElementById('quickAmounts').innerHTML = amounts.map(a=>`<button onclick="pickAmount(${a}, this)">S/ ${a}</button>`).join('');
+}
+function pickAmount(a, el){
+  movAmount = a;
+  document.getElementById('amountDisplay').textContent = a.toLocaleString('es-PE');
+  document.querySelectorAll('.chip-amounts button').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+function buildKeypad(){
+  const keys = ['1','2','3','4','5','6','7','8','9','.','0','⌫'];
+  document.getElementById('keypad').innerHTML = keys.map(k=>`<button class="${k==='⌫'?'fn':''}" onclick="keyPress('${k}')">${k}</button>`).join('');
+}
+function keyPress(k){
+  let cur = document.getElementById('amountDisplay').textContent.replace(/,/g,'');
+  document.querySelectorAll('.chip-amounts button').forEach(b=>b.classList.remove('active'));
+  if(k==='⌫'){ cur = cur.length>1? cur.slice(0,-1) : '0'; }
+  else if(k==='.'){ if(!cur.includes('.')) cur += '.'; }
+  else{ cur = (cur==='0') ? k : cur+k; }
+  if(cur.length>9) return;
+  document.getElementById('amountDisplay').textContent = cur;
+  movAmount = parseFloat(cur)||0;
+}
+function buildCatGrid(){
+  const freq = state.categoryFreq;
+  const sorted = [...CATEGORIES].sort((a,b)=> (freq[b.id]||0)-(freq[a.id]||0));
+  document.getElementById('catGrid').innerHTML = sorted.map(c=>
+    `<div class="cat-item" data-cat="${c.id}" onclick="pickCategory('${c.id}', this)">
+      <div class="ic">${ICON(c.icon)}</div><span>${c.label}</span>
+    </div>`).join('');
+  if(sorted.length){ pickCategory(sorted[0].id, document.querySelector('.cat-item')); }
+}
+function pickCategory(id, el){
+  movCategory = id;
+  document.querySelectorAll('.cat-item').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function saveMovement(){
+  if(movAmount<=0){ showToast('Ingresa un monto válido', false); return; }
+  const name = document.getElementById('movName').value.trim();
+  const now = new Date();
+  const id = 'm_'+now.getTime()+'_'+Math.random().toString(36).slice(2,7);
+
+  if(movType==='gasto'){
+    if(!movCategory) movCategory = 'otros';
+    state.expenses.push({id, type:'gasto', amount:movAmount, category:movCategory, name: name || categoryLabel(movCategory), date: todayKey(now), ts: now.getTime()});
+    state.categoryFreq[movCategory] = (state.categoryFreq[movCategory]||0)+1;
+  }else{
+    state.incomes.push({id, type:'ingreso', amount:movAmount, name: name || 'Ingreso', date: todayKey(now), ts: now.getTime()});
+  }
+  saveData();
+  closeSheet('overlayAdd');
+  renderHome(); renderMovList();
+  showToast(movType==='gasto' ? 'Gasto registrado' : 'Ingreso registrado');
+}
+
+/* ======================= VOZ (Web Speech API) ======================= */
+let recognition = null;
+let recognizing = false;
+function toggleVoice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ document.getElementById('voiceHint').textContent = 'Tu navegador no soporta dictado por voz.'; return; }
+  if(recognizing){ recognition && recognition.stop(); return; }
+  recognition = new SR();
+  recognition.lang = 'es-PE';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = ()=>{
+    recognizing = true;
+    document.getElementById('micBtn').classList.add('rec');
+    document.getElementById('voiceHint').textContent = 'Escuchando… di, por ejemplo: "veinte soles en comida"';
+  };
+  recognition.onresult = (ev)=>{
+    let transcript = '';
+    for(let i=0;i<ev.results.length;i++){ transcript += ev.results[i][0].transcript; }
+    document.getElementById('movName').value = transcript;
+    document.getElementById('voiceHint').textContent = '“'+transcript+'”';
+    autoFillFromSpeech(transcript);
+  };
+  recognition.onerror = ()=>{ document.getElementById('voiceHint').textContent = 'No se pudo escuchar bien, intenta de nuevo.'; };
+  recognition.onend = ()=>{
+    recognizing = false;
+    document.getElementById('micBtn').classList.remove('rec');
+  };
+  recognition.start();
+}
+function autoFillFromSpeech(text){
+  const t = text.toLowerCase();
+  // extraer número
+  const numMatch = t.match(/(\d+([.,]\d+)?)/);
+  if(numMatch){
+    const val = parseFloat(numMatch[1].replace(',', '.'));
+    if(!isNaN(val)){
+      movAmount = val;
+      document.getElementById('amountDisplay').textContent = val.toLocaleString('es-PE');
+    }
+  }
+  // detectar ingreso vs gasto
+  if(/ingreso|cobr|pagaron|deposit|gan[eé]/.test(t)){ setMovType('ingreso'); }
+  else{ setMovType('gasto'); }
+  // detectar categoría por palabras clave
+  const KEYWORDS = {
+    comida:['comida','almuerzo','desayuno','cena','restaurante','pollo','menu','menú'],
+    transporte:['taxi','uber','pasaje','gasolina','combustible','bus','carro','moto'],
+    compras:['ropa','tienda','compra','zapatillas','mercado'],
+    servicios:['luz','agua','internet','celular','recibo','servicio'],
+    salud:['farmacia','doctor','medicina','salud','consulta'],
+    ocio:['cine','netflix','salida','diversión','juego','bar'],
+    hogar:['casa','alquiler','hogar','muebles','limpieza']
+  };
+  for(const [cat, words] of Object.entries(KEYWORDS)){
+    if(words.some(w=>t.includes(w))){
+      const el = document.querySelector(`.cat-item[data-cat="${cat}"]`);
+      pickCategory(cat, el);
+      break;
+    }
+  }
+  // limpiar el nombre quitando el número, dejar descripción legible
+  const clean = text.replace(numMatch? numMatch[0] : '', '').replace(/\bsoles?\b/gi,'').trim();
+  if(clean) document.getElementById('movName').value = clean.charAt(0).toUpperCase()+clean.slice(1);
+}
+
+/* ======================= PAGOS MENSUALES ======================= */
+function paymentStatus(p){
+  const mk = monthKey();
+  const paid = (p.paidMonths||[]).includes(mk);
+  if(paid) return {color:'green', text:'Pagado este mes'};
+  const now = new Date();
+  const due = new Date(now.getFullYear(), now.getMonth(), Math.min(p.day, 28));
+  let diff = Math.ceil((due - now) / (1000*60*60*24));
+  if(diff < 0) return {color:'red', text:'Vencido · día '+p.day};
+  if(diff <= 5) return {color:'amber', text:diff===0? 'Vence hoy' : `Vence en ${diff} día${diff===1?'':'s'}`};
+  return {color:'green', text:'Vence el día '+p.day};
+}
+function renderPayments(){
+  if(!state.payments.length){ document.getElementById('payList').innerHTML = emptyHTML('Agrega tus pagos fijos: Netflix, alquiler, gimnasio…'); return; }
+  document.getElementById('payList').innerHTML = state.payments.map(p=>{
+    const st = paymentStatus(p);
+    const paid = (p.paidMonths||[]).includes(monthKey());
+    return `<div class="pay-card">
+      <div class="pay-status-dot ${st.color}"></div>
+      <div class="pay-info"><div class="n">${escapeHTML(p.name)}</div><div class="d">${st.text}</div></div>
+      <div class="pay-amount">${fmtShort(p.amount)}</div>
+      <div class="pay-more" onclick="openPaymentSheet('${p.id}')">${ICON(ICON_MORE,16)}</div>
+    </div>
+    ${!paid? `<div class="pay-card-actions"><button class="pill-btn solid" style="flex:0 0 auto; padding:8px 16px; font-size:12.5px;" onclick="markPaid('${p.id}')">Marcar pagado</button></div>` : ''}`;
+  }).join('');
+}
+function markPaid(id){
+  const p = state.payments.find(x=>x.id===id); if(!p) return;
+  p.paidMonths = p.paidMonths || [];
+  p.paidMonths.push(monthKey());
+  saveData(); renderPayments();
+  showToast('Pago marcado como realizado');
+}
+let editingPaymentId = null;
+function openPaymentSheet(id){
+  editingPaymentId = id || null;
+  if(id){
+    const p = state.payments.find(x=>x.id===id);
+    document.getElementById('paymentSheetTitle').textContent = 'Editar pago';
+    document.getElementById('payName').value = p.name;
+    document.getElementById('payAmount').value = p.amount;
+    document.getElementById('payDay').value = p.day;
+    document.getElementById('deletePayLink').style.display = 'block';
+  }else{
+    document.getElementById('paymentSheetTitle').textContent = 'Nuevo pago mensual';
+    document.getElementById('payName').value = '';
+    document.getElementById('payAmount').value = '';
+    document.getElementById('payDay').value = '';
+    document.getElementById('deletePayLink').style.display = 'none';
+  }
+  document.getElementById('overlayPayment').classList.add('show');
+}
+function savePayment(){
+  const name = document.getElementById('payName').value.trim();
+  const amount = parseFloat(document.getElementById('payAmount').value)||0;
+  const day = Math.min(31, Math.max(1, parseInt(document.getElementById('payDay').value)||1));
+  if(!name || amount<=0){ showToast('Completa nombre y monto', false); return; }
+  if(editingPaymentId){
+    const p = state.payments.find(x=>x.id===editingPaymentId);
+    Object.assign(p, {name, amount, day});
+  }else{
+    state.payments.push({id:'p_'+Date.now(), name, amount, day, paidMonths:[]});
+  }
+  saveData();
+  closeSheet('overlayPayment');
+  renderPayments();
+  showToast('Pago guardado');
+}
+function deletePayment(){
+  state.payments = state.payments.filter(x=>x.id!==editingPaymentId);
+  saveData();
+  closeSheet('overlayPayment');
+  renderPayments();
+  showToast('Pago eliminado');
+}
+
+/* ======================= ASISTENTE / IA ======================= */
+function computeInsight(){
+  const now = new Date();
+  const mk = monthKey();
+  const monthIncomes = state.incomes.filter(x=>monthKey(new Date(x.ts))===mk).reduce((s,x)=>s+x.amount,0);
+  const monthExpenses = state.expenses.filter(x=>monthKey(new Date(x.ts))===mk).reduce((s,x)=>s+x.amount,0);
+  const ahorro = monthIncomes - monthExpenses;
+  const goal = state.goal.monthly || 0;
+
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const dayOfMonth = now.getDate();
+  const daysLeft = daysInMonth - dayOfMonth;
+  const progressPct = goal>0 ? Math.max(0, Math.min(100, (ahorro/goal)*100)) : 0;
+
+  // categoría con más gasto este mes
+  const byCat = {};
+  state.expenses.filter(x=>monthKey(new Date(x.ts))===mk).forEach(x=>{ byCat[x.category]=(byCat[x.category]||0)+x.amount; });
+  let topCat = null, topVal = 0;
+  Object.entries(byCat).forEach(([c,v])=>{ if(v>topVal){topVal=v; topCat=c;} });
+
+  let msg, color;
+  if(goal<=0){
+    msg = `Aún no tienes una meta de ahorro. Ve a Ajustes y define cuánto quieres ahorrar este mes para que pueda avisarte cómo vas.`;
+    color = '#fff';
+  }else if(ahorro >= goal){
+    msg = `Vas muy bien. Ya llevas ${fmt(ahorro)} ahorrados este mes, superando tu meta de ${fmt(goal)}.`;
+    color = 'var(--green)';
+  }else{
+    const expectedByNow = goal * (dayOfMonth/daysInMonth);
+    const restante = goal - ahorro;
+    const porDia = daysLeft>0 ? restante/daysLeft : restante;
+    if(ahorro >= expectedByNow*0.85){
+      msg = `Vas bien. Te faltan ${fmt(restante)} para tu meta de ${fmt(goal)}. Si ahorras ${fmt(porDia)} al día durante ${daysLeft} días más, la alcanzas.`;
+      color = 'var(--green)';
+    }else{
+      msg = `Vas un poco atrasado respecto a tu meta de ${fmt(goal)}. Necesitas ${fmt(porDia)} al día en los ${daysLeft} días que quedan del mes para llegar.`;
+      color = 'var(--amber)';
+    }
+  }
+  if(topCat && topVal>0){
+    msg += ` Tu categoría con más gasto es ${categoryLabel(topCat)} (${fmt(topVal)}).`;
+  }
+  return {msg, color, progressPct, goal, ahorro};
+}
+function renderAI(){
+  const r = computeInsight();
+  document.getElementById('aiSummary').textContent = r.msg;
+  const bar = document.getElementById('aiProgressBar');
+  bar.style.width = r.progressPct+'%';
+  bar.style.background = r.color;
+}
+function renderAIDetail(){
+  const r = computeInsight();
+  document.getElementById('aiDetailText').textContent = r.msg;
+  const bar = document.getElementById('aiProgressBar2');
+  bar.style.width = r.progressPct+'%';
+  bar.style.background = r.color;
+  document.getElementById('aiTopCat').innerHTML = r.goal>0 ? `<div class="field-label">Progreso hacia tu meta</div><div class="settings-row"><div class="l">Ahorrado este mes<small>Meta: ${fmt(r.goal)}</small></div><b>${fmt(r.ahorro)}</b></div>` : '';
+}
+
+/* ======================= CIERRE DIARIO / RECORDATORIOS ======================= */
+function currentTodayCheckin(){ return state.checkins[todayKey()]; }
+function renderBanner(){
+  const c = currentTodayCheckin();
+  const now = new Date();
+  const hour = state.settings.reminderHour ?? 21;
+  const shouldNag = !c || (!c.done && !c.skipDay && (!c.skipUntil || now.getTime() >= c.skipUntil));
+  const pastHour = now.getHours() >= hour;
+  const slot = document.getElementById('bannerSlot');
+  if(shouldNag && pastHour){
+    slot.innerHTML = `<div class="banner" onclick="openCheckin()">
+      <div class="ic">${ICON(ICON_ALERT)}</div>
+      <p>No has registrado tu cierre del día. Toca aquí para anotar tu ahorro o ingreso de hoy.</p>
+    </div>`;
+  }else{
+    slot.innerHTML = '';
+  }
+}
+function openCheckin(){
+  document.getElementById('checkinAmount').value='';
+  document.getElementById('skipOptions').classList.remove('show');
+  buildSkipHourGrid();
+  document.getElementById('overlayCheckin').classList.add('show');
+}
+function saveCheckin(){
+  const val = parseFloat(document.getElementById('checkinAmount').value);
+  const now = new Date();
+  if(!isNaN(val) && val>0){
+    state.incomes.push({id:'ck_'+now.getTime(), type:'ingreso', amount:val, name:'Cierre del día', date: todayKey(now), ts: now.getTime()});
+  }
+  state.checkins[todayKey()] = {done:true};
+  saveData();
+  closeSheet('overlayCheckin');
+  renderHome(); renderMovList();
+  showToast('Cierre del día guardado');
+}
+function showSkipOptions(){
+  document.getElementById('skipOptions').classList.add('show');
+}
+function buildSkipHourGrid(){
+  const hours = [12,15,18,20,21,22,23,0];
+  document.getElementById('skipHourGrid').innerHTML = hours.map(h=>`<button onclick="skipUntilHour(${h}, this)">${h===0?'00:00':h+':00'}</button>`).join('');
+}
+function skipUntilHour(h, el){
+  const now = new Date();
+  let target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, 0, 0);
+  if(target.getTime() <= now.getTime()) target.setDate(target.getDate()+1);
+  document.querySelectorAll('#skipHourGrid button').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  state.checkins[todayKey()] = {skipUntil: target.getTime()};
+  saveData();
+  closeSheet('overlayCheckin');
+  renderBanner();
+  showToast('Te lo recordaré a las '+ (h===0?'00:00':h+':00'));
+}
+function skipWholeDay(){
+  state.checkins[todayKey()] = {skipDay:true};
+  saveData();
+  closeSheet('overlayCheckin');
+  renderBanner();
+  showToast('Omitido por hoy');
+}
+
+/* ======================= AJUSTES ======================= */
+function renderAjustes(){
+  document.getElementById('goalInput').value = state.goal.monthly || '';
+  const hours = [19,20,21,22,23];
+  document.getElementById('reminderHourGrid').innerHTML = hours.map(h=>
+    `<button class="${state.settings.reminderHour===h?'active':''}" onclick="setReminderHour(${h}, this)">${h}:00</button>`).join('');
+  document.getElementById('statMovs').textContent = allMovs().length + ' registros';
+  document.getElementById('statPays').textContent = state.payments.length + ' registros';
+}
+function setReminderHour(h, el){
+  state.settings.reminderHour = h;
+  document.querySelectorAll('#reminderHourGrid button').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  saveData();
+  renderBanner();
+  showToast('Hora de recordatorio actualizada');
+}
+function saveGoal(fromSettingsSheet){
+  const val = parseFloat(document.getElementById(fromSettingsSheet? 'goalInput2':'goalInput').value)||0;
+  state.goal.monthly = val;
+  saveData();
+  renderHome();
+  if(fromSettingsSheet){ closeSheet('overlaySettings'); }
+  showToast('Meta actualizada');
+}
+function confirmReset(){
+  if(confirm('¿Seguro que quieres borrar todos tus datos? Esta acción no se puede deshacer.')){
+    state = {expenses:[], incomes:[], payments:[], checkins:{}, goal:{monthly:0}, categoryFreq:{}, settings:{reminderHour:21}};
+    saveData();
+    renderHome(); renderMovList(); renderPayments(); renderAjustes();
+    showToast('Datos borrados');
+  }
+}
+
+/* ======================= LOOP DE RECORDATORIO ======================= */
+setInterval(()=>{ renderBanner(); }, 60000);
+
+/* ======================= PANTALLA DE BLOQUEO (PIN) ======================= */
+function simpleHash(s){ let h=0; for(let i=0;i<s.length;i++){ h=((h<<5)-h+s.charCodeAt(i))|0; } return String(h); }
+function getSavedPinHash(){ try{ return localStorage.getItem('finpin'); }catch(e){ return null; } }
+function setSavedPinHash(h){ try{ localStorage.setItem('finpin', h); }catch(e){} }
+
+let pinBuffer = '';
+let pinMode = 'unlock'; // 'create' | 'confirm' | 'unlock'
+let pinFirstEntry = '';
+
+function initLock(){
+  const saved = getSavedPinHash();
+  if(!saved){
+    pinMode = 'create';
+    renderLockScreen('Crea un PIN', 'Protege el acceso a tu app con 4 dígitos.');
+  }else{
+    pinMode = 'unlock';
+    renderLockScreen('Ingresa tu PIN', 'Solo tú puedes ver esta app.');
+  }
+  document.getElementById('lockScreen').style.display = 'flex';
+}
+function renderLockScreen(title, sub){
+  document.getElementById('lockTitle').textContent = title;
+  document.getElementById('lockSub').textContent = sub;
+  pinBuffer = '';
+  updatePinDots();
+}
+function updatePinDots(){
+  document.querySelectorAll('.pin-dot').forEach((d,i)=> d.classList.toggle('filled', i<pinBuffer.length));
+}
+function pinPress(d){
+  if(pinBuffer.length>=4) return;
+  pinBuffer += d;
+  updatePinDots();
+  if(pinBuffer.length===4){ setTimeout(handlePinComplete, 150); }
+}
+function pinDelete(){ pinBuffer = pinBuffer.slice(0,-1); updatePinDots(); }
+function shakePinDots(){
+  const wrap = document.getElementById('pinDotsWrap');
+  wrap.classList.add('shake');
+  setTimeout(()=>wrap.classList.remove('shake'), 400);
+}
+function handlePinComplete(){
+  if(pinMode==='create'){
+    pinFirstEntry = pinBuffer;
+    pinMode = 'confirm';
+    renderLockScreen('Confirma tu PIN', 'Vuelve a escribir el mismo PIN.');
+  }else if(pinMode==='confirm'){
+    if(pinBuffer===pinFirstEntry){
+      setSavedPinHash(simpleHash(pinBuffer));
+      unlockApp();
+    }else{
+      shakePinDots();
+      setTimeout(()=>{ pinMode='create'; renderLockScreen('Crea un PIN','No coincide, intenta de nuevo.'); }, 400);
+    }
+  }else{
+    if(simpleHash(pinBuffer)===getSavedPinHash()){
+      unlockApp();
+    }else{
+      shakePinDots();
+      setTimeout(()=>{ renderLockScreen('Ingresa tu PIN','PIN incorrecto, intenta de nuevo.'); }, 400);
+    }
+  }
+}
+function unlockApp(){ document.getElementById('lockScreen').style.display = 'none'; }
+function forgotPin(){
+  if(confirm('La única forma de recuperar el acceso es borrar el PIN y todos los datos guardados en este dispositivo. ¿Deseas continuar?')){
+    try{ localStorage.removeItem('finpin'); localStorage.removeItem('findata'); }catch(e){}
+    location.reload();
+  }
+}
+function lockNow(){
+  pinMode = 'unlock';
+  renderLockScreen('Ingresa tu PIN', 'Solo tú puedes ver esta app.');
+  document.getElementById('lockScreen').style.display = 'flex';
+}
+function changePin(){
+  try{ localStorage.removeItem('finpin'); }catch(e){}
+  pinMode = 'create';
+  renderLockScreen('Crea un nuevo PIN', 'Elige 4 dígitos que recuerdes bien.');
+  document.getElementById('lockScreen').style.display = 'flex';
+}
+
+/* ======================= INIT ======================= */
+async function init(){
+  await loadData();
+  renderHome();
+  renderMovList();
+  renderPayments();
+  renderAjustes();
+  document.getElementById('loading').style.display = 'none';
+  initLock();
+  if(!storageOK){ showToast('El navegador bloqueó el guardado (¿modo incógnito?). Los datos son temporales.', false); }
+}
+init();
+
+/* ======================= SERVICE WORKER (offline + instalación) ======================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
