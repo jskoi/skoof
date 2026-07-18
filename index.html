@@ -288,21 +288,53 @@ body{
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius-md);
-  padding:16px;
+  padding:14px;
   margin-bottom:12px;
   display:flex; align-items:center; gap:13px;
+}
+.pay-card.is-alert{border-color:rgba(255,69,58,.35);}
+.cal-chip{
+  width:50px; flex-shrink:0; border-radius:12px; overflow:hidden;
+  text-align:center; border:1px solid var(--border);
+}
+.cal-chip .m{
+  background:var(--red); color:#fff; font-size:10px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.3px; padding:3px 0;
+}
+.cal-chip.green .m{background:var(--green);}
+.cal-chip.amber .m{background:var(--amber); color:#1a1200;}
+.cal-chip.paid .m{background:var(--surface3); color:var(--text-sec);}
+.cal-chip .day{
+  background:var(--surface2); font-size:19px; font-weight:800; padding:6px 0 7px 0;
 }
 .pay-status-dot{width:11px;height:11px;border-radius:50%; flex-shrink:0;}
 .pay-status-dot.green{background:var(--green); box-shadow:0 0 8px rgba(48,209,88,.6);}
 .pay-status-dot.amber{background:var(--amber); box-shadow:0 0 8px rgba(255,159,10,.6);}
 .pay-status-dot.red{background:var(--red); box-shadow:0 0 8px rgba(255,69,58,.6);}
 .pay-info{flex:1; min-width:0;}
-.pay-info .n{font-size:15.5px; font-weight:700;}
+.pay-info .n{font-size:15.5px; font-weight:700; display:flex; align-items:center; gap:6px;}
 .pay-info .d{font-size:12.5px; color:var(--text-sec); margin-top:2px;}
-.pay-amount{font-size:16px; font-weight:800; margin-right:2px;}
-.pay-more{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-tert); cursor:pointer;}
-.pay-more svg{width:16px;height:16px;}
+.pay-info .badge{
+  font-size:10px; font-weight:800; padding:2px 7px; border-radius:99px; text-transform:uppercase; letter-spacing:.3px;
+}
+.pay-info .badge.red{background:rgba(255,69,58,.15); color:#FF7A70;}
+.pay-info .badge.amber{background:rgba(255,159,10,.15); color:#FFC168;}
+.pay-info .badge.green{background:rgba(48,209,88,.15); color:#5FE083;}
+.pay-right{display:flex; flex-direction:column; align-items:flex-end; gap:6px;}
+.pay-amount{font-size:16px; font-weight:800;}
+.pay-more{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-tert); cursor:pointer;}
+.pay-more svg{width:15px;height:15px;}
 .pay-card-actions{display:flex; justify-content:flex-end; margin-top:-4px; margin-bottom:12px; gap:8px;}
+
+.pay-toggle{display:flex; gap:8px; margin-bottom:6px;}
+.pay-toggle button{
+  flex:1; padding:12px; border-radius:16px; border:1.5px solid var(--border);
+  background:transparent; color:var(--text-sec); font-weight:700; font-size:13.5px;
+  font-family:inherit; cursor:pointer; display:flex;align-items:center;justify-content:center; gap:6px;
+  transition:all .2s var(--ease);
+}
+.pay-toggle button.active.si{background:rgba(48,209,88,.13); border-color:var(--green); color:#5FE083;}
+.pay-toggle button.active.no{background:rgba(255,69,58,.13); border-color:var(--red); color:#FF7A70;}
 
 .fab-row{display:flex; justify-content:flex-end; margin-bottom:6px;}
 .fab-mini{
@@ -620,6 +652,7 @@ body{
     <section class="view active" id="view-home">
 
       <div id="bannerSlot"></div>
+      <div id="payBannerSlotHome"></div>
 
       <div class="balance-card">
         <div class="balance-label">
@@ -692,6 +725,7 @@ body{
       <div class="section-title" style="margin-top:6px;">
         <h2>Pagos mensuales</h2>
       </div>
+      <div id="payBannerSlot"></div>
       <div class="fab-row">
         <div class="fab-mini" onclick="openPaymentSheet()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -850,6 +884,15 @@ body{
       <input class="text-input" id="payAmount" type="number" inputmode="decimal" placeholder="0.00">
       <div class="field-label">Día de vencimiento (1–31)</div>
       <input class="text-input" id="payDay" type="number" min="1" max="31" placeholder="Ej. 15">
+      <div class="field-label">¿Ya pagaste este mes?</div>
+      <div class="pay-toggle" id="payToggle">
+        <button class="si" data-paid="si" onclick="setPayPaidState(true, this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Sí, ya pagué
+        </button>
+        <button class="no active" data-paid="no" onclick="setPayPaidState(false, this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>Aún no
+        </button>
+      </div>
       <button class="pill-btn solid block big" style="margin-top:18px;" onclick="savePayment()">Guardar pago</button>
       <div class="ghost-link" id="deletePayLink" style="display:none; color:var(--red);" onclick="deletePayment()">Eliminar este pago</div>
     </div>
@@ -1018,6 +1061,7 @@ function renderHome(){
 
   renderAI();
   renderBanner();
+  renderPaymentsBanner();
 }
 
 function rowHTML(m){
@@ -1235,54 +1279,121 @@ function autoFillFromSpeech(text){
 }
 
 /* ======================= PAGOS MENSUALES ======================= */
+const MONTH_ABBR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+// Próxima fecha de vencimiento real (respeta meses cortos, ej. 30/31 en febrero)
+function nextDueDate(p){
+  const now = new Date();
+  const mk = monthKey();
+  const paidThisMonth = (p.paidMonths||[]).includes(mk);
+  const daysInThisMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const dayThisMonth = Math.min(p.day, daysInThisMonth);
+  let due = new Date(now.getFullYear(), now.getMonth(), dayThisMonth);
+  // si ya pasó la fecha de este mes y ya está pagado, mostramos el vencimiento del próximo mes
+  if(paidThisMonth && now > due){
+    const daysNextMonth = new Date(now.getFullYear(), now.getMonth()+2, 0).getDate();
+    due = new Date(now.getFullYear(), now.getMonth()+1, Math.min(p.day, daysNextMonth));
+  }
+  return due;
+}
 function paymentStatus(p){
   const mk = monthKey();
   const paid = (p.paidMonths||[]).includes(mk);
-  if(paid) return {color:'green', text:'Pagado este mes'};
+  const due = nextDueDate(p);
   const now = new Date();
-  const due = new Date(now.getFullYear(), now.getMonth(), Math.min(p.day, 28));
-  let diff = Math.ceil((due - now) / (1000*60*60*24));
-  if(diff < 0) return {color:'red', text:'Vencido · día '+p.day};
-  if(diff <= 5) return {color:'amber', text:diff===0? 'Vence hoy' : `Vence en ${diff} día${diff===1?'':'s'}`};
-  return {color:'green', text:'Vence el día '+p.day};
+  const diff = Math.ceil((due.setHours(23,59,59,999) - now) / (1000*60*60*24));
+  const dateLabel = due.toLocaleDateString('es-PE', {day:'numeric', month:'long'});
+  if(paid) return {color:'green', text:'Pagado · próximo '+dateLabel, due, alert:false};
+  if(diff < 0) return {color:'red', text:'Vencido desde el '+dateLabel, due, alert:true, urgent:true};
+  if(diff === 0) return {color:'red', text:'Vence hoy · '+dateLabel, due, alert:true, urgent:true};
+  if(diff <= 5) return {color:'amber', text:`Vence en ${diff} día${diff===1?'':'s'} · ${dateLabel}`, due, alert:true, urgent:false};
+  return {color:'green', text:'Vence el '+dateLabel, due, alert:false};
 }
 function renderPayments(){
-  if(!state.payments.length){ document.getElementById('payList').innerHTML = emptyHTML('Agrega tus pagos fijos: Netflix, alquiler, gimnasio…'); return; }
-  document.getElementById('payList').innerHTML = state.payments.map(p=>{
+  if(!state.payments.length){ document.getElementById('payList').innerHTML = emptyHTML('Agrega tus pagos fijos: Netflix, alquiler, gimnasio…'); renderPaymentsBanner(); return; }
+  const sorted = [...state.payments].sort((a,b)=> paymentStatus(a).due - paymentStatus(b).due);
+  document.getElementById('payList').innerHTML = sorted.map(p=>{
     const st = paymentStatus(p);
     const paid = (p.paidMonths||[]).includes(monthKey());
-    return `<div class="pay-card">
-      <div class="pay-status-dot ${st.color}"></div>
-      <div class="pay-info"><div class="n">${escapeHTML(p.name)}</div><div class="d">${st.text}</div></div>
-      <div class="pay-amount">${fmtShort(p.amount)}</div>
-      <div class="pay-more" onclick="openPaymentSheet('${p.id}')">${ICON(ICON_MORE,16)}</div>
+    const badge = st.color==='red'? '<span class="badge red">Falta pagar</span>' : st.color==='amber'? '<span class="badge amber">Por vencer</span>' : paid? '<span class="badge green">Al día</span>' : '';
+    return `<div class="pay-card ${st.urgent?'is-alert':''}">
+      <div class="cal-chip ${paid? 'paid' : st.color}">
+        <div class="m">${MONTH_ABBR[st.due.getMonth()]}</div>
+        <div class="day">${st.due.getDate()}</div>
+      </div>
+      <div class="pay-info">
+        <div class="n">${escapeHTML(p.name)} ${badge}</div>
+        <div class="d">${st.text}</div>
+      </div>
+      <div class="pay-right">
+        <div class="pay-amount">${fmtShort(p.amount)}</div>
+        <div class="pay-more" onclick="openPaymentSheet('${p.id}')">${ICON(ICON_MORE,16)}</div>
+      </div>
     </div>
-    ${!paid? `<div class="pay-card-actions"><button class="pill-btn solid" style="flex:0 0 auto; padding:8px 16px; font-size:12.5px;" onclick="markPaid('${p.id}')">Marcar pagado</button></div>` : ''}`;
+    ${!paid? `<div class="pay-card-actions"><button class="pill-btn solid" style="flex:0 0 auto; padding:8px 16px; font-size:12.5px;" onclick="markPaid('${p.id}')">Marcar como pagado</button></div>` : ''}`;
   }).join('');
+  renderPaymentsBanner();
 }
 function markPaid(id){
   const p = state.payments.find(x=>x.id===id); if(!p) return;
   p.paidMonths = p.paidMonths || [];
-  p.paidMonths.push(monthKey());
-  saveData(); renderPayments();
+  const mk = monthKey();
+  if(!p.paidMonths.includes(mk)) p.paidMonths.push(mk);
+  saveData(); renderPayments(); renderHome();
   showToast('Pago marcado como realizado');
 }
+
+/* Banner de alerta: pagos vencidos o por vencer */
+function pendingPayments(){
+  return state.payments.map(p=>({p, st:paymentStatus(p)})).filter(x=>x.st.alert);
+}
+function renderPaymentsBanner(){
+  const pending = pendingPayments();
+  const slotPagos = document.getElementById('payBannerSlot');
+  const slotHome = document.getElementById('payBannerSlotHome');
+  if(!pending.length){ if(slotPagos) slotPagos.innerHTML=''; if(slotHome) slotHome.innerHTML=''; return; }
+  const urgentCount = pending.filter(x=>x.st.urgent).length;
+  let msg;
+  if(pending.length===1){
+    msg = `${pending[0].p.name} ${pending[0].st.urgent? 'está vencido o vence hoy' : 'está por vencer'}. No olvides pagarlo.`;
+  }else{
+    msg = `Tienes ${pending.length} pagos pendientes${urgentCount? `, ${urgentCount} ya vencido${urgentCount===1?'':'s'} o venciendo hoy` : ''}. Revísalos.`;
+  }
+  const html = `<div class="banner" onclick="goTab('pagos')">
+    <div class="ic">${ICON(ICON_ALERT)}</div>
+    <p>${msg}</p>
+  </div>`;
+  if(slotPagos) slotPagos.innerHTML = html;
+  if(slotHome) slotHome.innerHTML = html;
+}
+
 let editingPaymentId = null;
+let payMarkAsPaidNow = false;
+function setPayPaidState(paid, el){
+  payMarkAsPaidNow = paid;
+  document.querySelectorAll('#payToggle button').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
 function openPaymentSheet(id){
   editingPaymentId = id || null;
   if(id){
     const p = state.payments.find(x=>x.id===id);
+    const paidNow = (p.paidMonths||[]).includes(monthKey());
     document.getElementById('paymentSheetTitle').textContent = 'Editar pago';
     document.getElementById('payName').value = p.name;
     document.getElementById('payAmount').value = p.amount;
     document.getElementById('payDay').value = p.day;
     document.getElementById('deletePayLink').style.display = 'block';
+    payMarkAsPaidNow = paidNow;
+    document.querySelectorAll('#payToggle button').forEach(b=>b.classList.toggle('active', (b.dataset.paid==='si')===paidNow));
   }else{
     document.getElementById('paymentSheetTitle').textContent = 'Nuevo pago mensual';
     document.getElementById('payName').value = '';
     document.getElementById('payAmount').value = '';
     document.getElementById('payDay').value = '';
     document.getElementById('deletePayLink').style.display = 'none';
+    payMarkAsPaidNow = false;
+    document.querySelectorAll('#payToggle button').forEach(b=>b.classList.toggle('active', b.dataset.paid==='no'));
   }
   document.getElementById('overlayPayment').classList.add('show');
 }
@@ -1291,15 +1402,20 @@ function savePayment(){
   const amount = parseFloat(document.getElementById('payAmount').value)||0;
   const day = Math.min(31, Math.max(1, parseInt(document.getElementById('payDay').value)||1));
   if(!name || amount<=0){ showToast('Completa nombre y monto', false); return; }
+  const mk = monthKey();
   if(editingPaymentId){
     const p = state.payments.find(x=>x.id===editingPaymentId);
     Object.assign(p, {name, amount, day});
+    p.paidMonths = p.paidMonths || [];
+    if(payMarkAsPaidNow && !p.paidMonths.includes(mk)) p.paidMonths.push(mk);
+    if(!payMarkAsPaidNow) p.paidMonths = p.paidMonths.filter(m=>m!==mk);
   }else{
-    state.payments.push({id:'p_'+Date.now(), name, amount, day, paidMonths:[]});
+    state.payments.push({id:'p_'+Date.now(), name, amount, day, paidMonths: payMarkAsPaidNow? [mk] : []});
   }
   saveData();
   closeSheet('overlayPayment');
   renderPayments();
+  renderHome();
   showToast('Pago guardado');
 }
 function deletePayment(){
@@ -1468,7 +1584,7 @@ function confirmReset(){
 }
 
 /* ======================= LOOP DE RECORDATORIO ======================= */
-setInterval(()=>{ renderBanner(); }, 60000);
+setInterval(()=>{ renderBanner(); renderPaymentsBanner(); }, 60000);
 
 /* ======================= PANTALLA DE BLOQUEO (PIN) ======================= */
 function simpleHash(s){ let h=0; for(let i=0;i<s.length;i++){ h=((h<<5)-h+s.charCodeAt(i))|0; } return String(h); }
